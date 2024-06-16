@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+</head>
+<style>
+    #map {
+        height: 400px;
+    }
+
+    #map2 {
+        height: 400px;
+    }
+</style>
+<body>
+    <p>Informasi Lokasi Perangkat:</p>
+    <div id="map"></div>
+    <br>
+    <br>
+    <p>Informasi Berdasarkan IP:</p>
+    <div id="map2"></div>
+
+    <div id="info"></div>
+
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+
+
+    <script>
+
+
+
+$(document).ready(function() {
+    if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            var latitude = position.coords.latitude;
+            var longitude = position.coords.longitude;
+
+            var nominatimAPI = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + latitude + '&lon=' + longitude;
+
+            // Melakukan permintaan ke Nominatim API
+            $.getJSON(nominatimAPI, function(response) {
+                if (response.display_name) {
+                    var address = response.display_name;
+                    console.log("Alamat: " + address);
+
+            var mymap = L.map('map').setView([latitude, longitude], 13);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+            }).addTo(mymap);
+
+            var marker = L.marker([latitude, longitude]).addTo(mymap);
+            marker.bindPopup(address).openPopup();
+            $('#info').append("<h4>Informasi Lokasi:</h4>");
+            $('#info').append("<p>Latitude: " + latitude + ", Longitude: " + longitude+"</p>");
+            $('#info').append("<p>Alamat: "+address+"</p>");
+
+                } else {
+                    $('#map').append("<p>Gagal mendapatkan alamat.</p>");
+                }
+            });
+            // Lakukan sesuatu dengan informasi lokasi (latitude, longitude) di sini
+
+
+            
+
+
+
+
+
+
+            
+
+
+            
+        }, function(error) {
+            // Jika ada kesalahan dalam mendapatkan lokasi
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                $('#map').append("<p>Pengguna menolak permintaan akses lokasi.</p>");
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                $('#map').append("<p>Informasi lokasi tidak tersedia.</p>");
+                    break;
+                case error.TIMEOUT:
+                $('#map').append("<p>Waktu permintaan lokasi telah habis.</p>");
+                    break;
+                case error.UNKNOWN_ERROR:
+                $('#map').append("<p>Terjadi kesalahan yang tidak diketahui.</p>");
+                    break;
+            }
+        });
+    } else {
+        $('#map').append("<p>Geolocation tidak didukung di browser ini.</p>");
+    }
+
+    $('#info').append("<h4>Informasi Perangkat:</h4>");
+
+    var userLanguage = navigator.language || navigator.userLanguage;
+    $('#info').append("<p>Bahasa Preferensi: " + userLanguage+"</p>");
+
+    // Informasi Referer
+    var referrer = document.location.href;
+    $('#info').append("<p>Informasi Referer: " + referrer+"</p>");
+
+    // Informasi Koneksi
+    var connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    if (connection) {
+        var type = connection.effectiveType;
+        $('#info').append("<p>Informasi Koneksi: " + type+"</p>");
+    } else {
+        $('#info').append("<p>Informasi Koneksi tidak tersedia di browser ini.</p>");
+    }
+
+    // Resolusi Layar
+    var screenWidth = screen.width;
+    var screenHeight = screen.height;
+    $('#info').append("<p>Resolusi Layar: " + screenWidth + "x" + screenHeight+"</p>");
+
+    // User-Agent String
+    var userAgent = navigator.userAgent;
+    $('#info').append("<p>User-Agent String: " + userAgent +"</p>");
+
+
+    // Mendapatkan informasi alamat IP dan lokasi pengguna menggunakan layanan ipinfo.io
+    $.getJSON("https://ipinfo.io", function(response) {
+
+        $('#info').append("<h4>Informasi Lokasi Berdasar IP:</h4>");
+        $('#info').append("<p>IP: "+response.ip+"</p> <p>Lat & Long: "+response.loc+"</p> <p>Lokasi: "+response.city+" "+response.region+"-"+response.country+"</p> <p>Perusahaan: "+response.org+"</p>");
+        var location = response.loc.split(',');
+        var latitude = parseFloat(location[0]);
+        var longitude = parseFloat(location[1]);
+
+        var mymap = L.map('map2').setView([latitude , longitude], 13);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+            }).addTo(mymap);
+
+            
+
+            var marker = L.marker([latitude , longitude]).addTo(mymap);
+            marker.bindPopup("IP: "+response.ip+" "+response.city+" "+response.region+" "+response.country+" "+response.org).openPopup();
+
+               
+
+
+    });
+
+
+
+
+
+
+});
+
+    </script>
+    
+</body>
+</html>
